@@ -29,12 +29,16 @@ const char *SSID_01 = "FLAVIO_02";
 const char *PASS_01 = "8861854611";
 const int port = 1883;
 
-vector<int16_t> buff;
-vector<vector<int16_t>> sensorData;
-int16_t temp;
+int16_t buff[7];
+int16_t accel[3000][3];
+int16_t gyro[3000][3];
+int16_t temp[3000];
+//vector<vector<int16_t>> sensorData;
+//int16_t temp;
 unsigned long prevTime = 0;
 bool liveFlag = 0;
 long liveInterval = 1000;
+String msg;
 
 ESP8266WiFiMulti wifiMulti;
 StaticJsonDocument<200> data;
@@ -86,13 +90,17 @@ void loop()
     {
       readSensor();
 
-      String msg = "";
-      for(int i = 0; i < 7;i++){
+      msg = "[\t";
+      for (int i = 0; i < 7; i++) {
         msg += buff[i];
-        msg += ",";
-      }
+        msg += "\t";
 
-      Serial.println(msg);
+      }
+      msg += "]";
+      //msg+="hey";
+      Serial.print("\n");
+      Serial.print(msg);
+      //Serial.print("hey");
       //MQTT.publish(outTopic, "Essa é uma captura");
     }
   }
@@ -171,7 +179,7 @@ void inputMQTT(char *topic, byte *payload, unsigned int length)
 
     liveInterval = data["sampleRate"];
   }
-  else if(data["cmd"] == "cmd_stop"){
+  else if (data["cmd"] == "cmd_stop") {
     liveInterval = 0;
     Serial.print("Parando operação...");
   }
@@ -182,8 +190,7 @@ void inputMQTT(char *topic, byte *payload, unsigned int length)
   }
 }
 
-void setupOTA()
-{
+void setupOTA(){
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH)
@@ -231,10 +238,8 @@ void setupOTA()
   Serial.println("OTA Ready.");
 }
 
-void setupWiFi(ESP8266WiFiMulti wifiMulti)
-{
-  while (wifiMulti.run() != WL_CONNECTED)
-  {
+void setupWiFi(ESP8266WiFiMulti wifiMulti) {
+  while (wifiMulti.run() != WL_CONNECTED) {
     WiFi.mode(WIFI_STA);
     wifiMulti.addAP(SSID_01, PASS_01);
     Serial.println("Trying to connect to WiFi.");
@@ -244,20 +249,17 @@ void setupWiFi(ESP8266WiFiMulti wifiMulti)
   Serial.println(WiFi.localIP());
 }
 
-void setupMQTT()
-{
+void setupMQTT(){
 
   String deviceID = "ESP8266Client-";
   deviceID += String(random(0xffff), HEX);
 
   Serial.println("Trying to connect to MQTT Broker.");
-  if (MQTT.connect(deviceID.c_str()))
-  {
+  if (MQTT.connect(deviceID.c_str())) {
     Serial.println("\nBroker connected!");
     MQTT.subscribe(inTopic);
   }
-  else
-  {
+  else {
     Serial.println("Error. Trying again in 5 seconds.");
     delay(5000);
   }
@@ -280,16 +282,17 @@ void writeSensor(int REG, int VAL)
 
 void readSensor()
 {
-  buff.clear();
+  //buff.clear();
 
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(ACCEL_XOUT);
   Wire.endTransmission(false);
   Wire.requestFrom(MPU_ADDR, (uint8_t)14);
 
-  for (int i = 0; i < 7; i++)
-    temp = Wire.read() << 8 | Wire.read();
-  buff.push_back(temp);
+  for (int i = 0; i < 7; i++) {
+    buff[i] = Wire.read() << 8 | Wire.read();
+    //buff.push_back(temp);
+  }
 
   yield();
 }
@@ -304,15 +307,22 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
     for (int j = 0; j < nSample; j++)
     {
       readSensor();
+      for (int k = 0; k < 3; k++) {
+        accel[i][j] = buff[j];
+        gyro[i][j] = buff[j + 4];
+      }
+      temp[i] = buff[3];
 
-      sensorData.push_back(buff);
-      Serial.print("Amostra ");
-      Serial.println(j);
+      //sensorData.push_back(buff);
+      //Serial.print("Amostra ");
+      //Serial.println(j);
       //adicionar os dados que acabaram de ser lidos ao vector.
 
       delay(sampleRate);
     }
-    MQTT.loop();
+    Serial.println("OK");
+    MQTT.loop();  // da um mqtt.loop só pra manter o broker conectado. Pode ser removido depois
+
     //captura x concluida;
     //conectar ao firebase e enviar o vector preenchido
   }
