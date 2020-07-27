@@ -5,6 +5,7 @@
 #include <Wire.h>
 
 #include <vector>
+#include "key.h"
 //#include "lib-MPU.h"
 //#include "lib-nodemcu.h"
 
