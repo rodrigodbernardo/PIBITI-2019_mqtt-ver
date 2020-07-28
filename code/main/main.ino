@@ -23,13 +23,6 @@ const uint8_t ACCEL_CONFIG = 0x1C;
 const uint8_t GYRO_SCALE = 0b00000000;  //Escala do giroscopio: +-250 °/s
 const uint8_t ACCEL_SCALE = 0b00001000; //Escala do acelerometro: +- 4 G
 
-const char *inTopic = "rdba_cmd";
-const char *outTopic = "rdba_live";
-const char *server = "broker.hivemq.com";
-const char *SSID_01 = "FLAVIO_02";
-const char *PASS_01 = "8861854611";
-const int port = 1883;
-
 int16_t buff[7];
 int16_t accel[3000][3];
 int16_t gyro[3000][3];
@@ -64,7 +57,7 @@ void setup()
   setupOTA();
   setupSensor();
 
-  MQTT.setServer(server, port);
+  MQTT.setServer(broker_addr, broker_port);
   MQTT.setCallback(inputMQTT);
 }
 
@@ -92,10 +85,10 @@ void loop()
       readSensor();
 
       msg = "[\t";
-      for (int i = 0; i < 7; i++) {
+      for (int i = 0; i < 7; i++)
+      {
         msg += buff[i];
         msg += "\t";
-
       }
       msg += "]";
       //msg+="hey";
@@ -180,7 +173,8 @@ void inputMQTT(char *topic, byte *payload, unsigned int length)
 
     liveInterval = data["sampleRate"];
   }
-  else if (data["cmd"] == "cmd_stop") {
+  else if (data["cmd"] == "cmd_stop")
+  {
     liveInterval = 0;
     Serial.print("Parando operação...");
   }
@@ -191,7 +185,8 @@ void inputMQTT(char *topic, byte *payload, unsigned int length)
   }
 }
 
-void setupOTA(){
+void setupOTA()
+{
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH)
@@ -239,8 +234,10 @@ void setupOTA(){
   Serial.println("OTA Ready.");
 }
 
-void setupWiFi(ESP8266WiFiMulti wifiMulti) {
-  while (wifiMulti.run() != WL_CONNECTED) {
+void setupWiFi(ESP8266WiFiMulti wifiMulti)
+{
+  while (wifiMulti.run() != WL_CONNECTED)
+  {
     WiFi.mode(WIFI_STA);
     wifiMulti.addAP(SSID_01, PASS_01);
     Serial.println("Trying to connect to WiFi.");
@@ -250,17 +247,20 @@ void setupWiFi(ESP8266WiFiMulti wifiMulti) {
   Serial.println(WiFi.localIP());
 }
 
-void setupMQTT(){
+void setupMQTT()
+{
 
   String deviceID = "ESP8266Client-";
   deviceID += String(random(0xffff), HEX);
 
   Serial.println("Trying to connect to MQTT Broker.");
-  if (MQTT.connect(deviceID.c_str())) {
+  if (MQTT.connect(deviceID.c_str()))
+  {
     Serial.println("\nBroker connected!");
     MQTT.subscribe(inTopic);
   }
-  else {
+  else
+  {
     Serial.println("Error. Trying again in 5 seconds.");
     delay(5000);
   }
@@ -290,7 +290,8 @@ void readSensor()
   Wire.endTransmission(false);
   Wire.requestFrom(MPU_ADDR, (uint8_t)14);
 
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 7; i++)
+  {
     buff[i] = Wire.read() << 8 | Wire.read();
     //buff.push_back(temp);
   }
@@ -308,7 +309,8 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
     for (int j = 0; j < nSample; j++)
     {
       readSensor();
-      for (int k = 0; k < 3; k++) {
+      for (int k = 0; k < 3; k++)
+      {
         accel[i][j] = buff[j];
         gyro[i][j] = buff[j + 4];
       }
@@ -322,7 +324,8 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
       delay(sampleRate);
     }
     Serial.println("OK");
-    MQTT.loop();  // da um mqtt.loop só pra manter o broker conectado. Pode ser removido depois
+    MQTT.publish(outTopic,"ok");
+    MQTT.loop(); // da um mqtt.loop só pra manter o broker conectado. Pode ser removido depois
 
     //captura x concluida;
     //conectar ao firebase e enviar o vector preenchido
