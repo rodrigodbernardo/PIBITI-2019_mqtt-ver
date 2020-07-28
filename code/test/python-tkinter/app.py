@@ -1,8 +1,12 @@
 import tkinter
 
-def func():
-    print('Hey')
+def capture():
+    print('Capture Mode')
+    lblMenu['text'] = 'capture'
 
+def liveView():
+    print('Live View Mode')
+    lblMenu['text'] = 'LIVE'
 
 
 mainMenu = tkinter.Tk()
@@ -29,16 +33,27 @@ mainMenu.iconbitmap("code/resources/icon/if.ico")
 # Widgets da janela
 #
 
-#inicializacao
-btn = tkinter.Button(mainMenu, text = "OK", command = func)
-btn2 = tkinter.Button(mainMenu, text = "OK", command = func)
-lbl1 = tkinter.Label(mainMenu, text = "Este é um texto.")
+#inicializacao DE WIDGETS
+btnCapture = tkinter.Button(mainMenu, text = "Capture", command = capture)
+btnLive    = tkinter.Button(mainMenu, text = "Live View", command = liveView)
+lblMenu    = tkinter.Label(
+                mainMenu,
+                text = "What do you want to do?", 
+                relief = "groove",
+                font = "Arial 30 bold",
+                justify = "left",
+                width = "50",
+                height = 2,
+                anchor = 'w')
+
+#GRID
+
 
 
 #pack
 
-btn.pack()
-btn2.pack()
-lbl1.pack()
+lblMenu.pack()
+btnCapture.pack()
+btnLive.pack()
 
 mainMenu.mainloop()
