@@ -12,7 +12,7 @@ def liveView():
 
 def sendButtonPressed():
     print('Button pressed')
-    label_command['text'] = 'Button pressed!'
+    label_command['text'] = '\nButton pressed!\n'
     nCapture = entry_capture.get()
     nSamples = entry_sample.get()
     sampleRate = entry_rate.get()
@@ -38,20 +38,15 @@ screenHeight = mainWindow.winfo_screenheight()
 posx =screenWidth/2 - windowWidth/2 
 posy =screenHeight/2 - windowHeight/2
 
-#mainWindow.geometry("%dx%d+%d+%d" % (windowWidth,windowHeight,posx,posy))
-#mainWindow.minsize(width = windowWidth, height = windowHeight)
+mainWindow.geometry("%dx%d+%d+%d" % (windowWidth,windowHeight,posx,posy))
+mainWindow.minsize(width = windowWidth, height = windowHeight)
 
 #aparencia
 
 mainWindow.iconbitmap("code/resources/icon/if.ico")
-#mainWindow.state("zoomed") 
+mainWindow.state("zoomed") 
 #mainWindow['bg'] = "gray"
 
-#
-# Widgets da janela
-#
-
-#inicializacao DE WIDGETS
 '''
 btnCapture = tk.Button(mainWindow, text = "Capture", command = capture)
 btnLive    = tk.Button(mainWindow, text = "Live View", command = liveView)
@@ -65,13 +60,10 @@ lblMenu    = tk.Label(
                 height = 2,
                 anchor = 'w')
 '''
-#label
-
-#
 
 
-#-------------------
-#widgets
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 
 ##OPERATION frame
 
@@ -100,13 +92,19 @@ label_rate.grid(sticky='we')
 entry_rate.grid(sticky='we')
 
 
-##Graphic Frame
+##Graphics Frame
+
+### widgets
+
+### layout
 
 
 ##ADDITIONAL Frame
+
 frame_additional = tk.Frame(mainWindow)
 
 ### widgets
+
 label_additional = tk.Label(frame_additional,text = "ADDITIONAL",bg = 'blue')
 
 button_command = tk.Button(frame_additional,text="SEND\nCOMMAND",command = sendButtonPressed)#lambda: sendButtonPressed(i))
@@ -118,6 +116,7 @@ bar_var.set(i)
 bar_progress = ttk.Progressbar(frame_additional,variable=bar_var,maximum=10)
 
 ### layout
+
 label_additional.grid(sticky='we',rowspan=2)
 
 button_command.grid(sticky="we",rowspan=2)
@@ -126,11 +125,15 @@ label_command.grid(sticky='we')
 label_progress.grid(sticky='we')
 bar_progress.grid(sticky='we')
 
-##TERMINAL ZONE
+##TERMINAL frame
+
+### widgets
 
 #tkTerminal     = tk.Label(mainWindow, bg = "red",text="Terminal")
 
 #tkTerminal.grid(row=6,column=1,sticky="nswe",rowspan=3)
+
+### layout
 
 #tkAdditional.grid(row=6,column=0,sticky="we")
 
