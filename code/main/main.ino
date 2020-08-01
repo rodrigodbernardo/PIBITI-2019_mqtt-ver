@@ -31,7 +31,8 @@ int16_t temp[3000];
 //int16_t temp;
 unsigned long prevTime = 0;
 bool liveFlag = 0;
-long liveInterval = 1000;
+//bool ledFlag = 0;
+long liveInterval = 2000;
 String msg;
 
 ESP8266WiFiMulti wifiMulti;
@@ -50,6 +51,10 @@ void setupOTA();
 
 void setup()
 {
+  //pinMode(D1, OUTPUT);
+  //pinMode(D2, OUTPUT);
+  //pinMode(D3, OUTPUT);
+  
   Serial.begin(500000);
   Wire.begin(SDA, SCL);
   setupWiFi(wifiMulti);
@@ -96,6 +101,12 @@ void loop()
       Serial.print(msg);
       //Serial.print("hey");
       //MQTT.publish(outTopic, "Essa é uma captura");
+    }else{
+      //liveInterval = 2000;
+      
+      //setRGB(0,0,1);
+      //delay(100);
+      //setRGB(0,0,0);
     }
   }
 
@@ -150,6 +161,8 @@ void inputMQTT(char *topic, byte *payload, unsigned int length)
 
   if (data["cmd"] == "cmd_capt")
   {
+    //setRGB(1,0,1);
+    
     liveFlag = 0;
     Serial.println("\nCapture Mode.");
 
@@ -168,6 +181,8 @@ void inputMQTT(char *topic, byte *payload, unsigned int length)
   }
   else if (data["cmd"] == "cmd_live")
   {
+    //setRGB(1,0,1);
+    
     liveFlag = 1;
     Serial.println("\nLive Mode.");
 
@@ -241,8 +256,13 @@ void setupWiFi(ESP8266WiFiMulti wifiMulti)
     WiFi.mode(WIFI_STA);
     wifiMulti.addAP(SSID_01, PASS_01);
     Serial.println("Trying to connect to WiFi.");
-    delay(1000);
+    delay(500);
+
+    //ledFlag = !ledFlag;
+    //setRGB(ledFlag,0,0);
   }
+  
+  //setRGB(0,0,0);
   Serial.print("\nWiFi connected. IP ");
   Serial.println(WiFi.localIP());
 }
@@ -283,18 +303,13 @@ void writeSensor(int REG, int VAL)
 
 void readSensor()
 {
-  //buff.clear();
-
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(ACCEL_XOUT);
   Wire.endTransmission(false);
   Wire.requestFrom(MPU_ADDR, (uint8_t)14);
-
+  
   for (int i = 0; i < 7; i++)
-  {
     buff[i] = Wire.read() << 8 | Wire.read();
-    //buff.push_back(temp);
-  }
 
   yield();
 }
@@ -317,10 +332,11 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
       temp[i] = buff[3];
 
       //sensorData.push_back(buff);
-      //Serial.print("Amostra ");
-      //Serial.println(j);
+      Serial.print("Amostra ");
+      Serial.println(j);
       //adicionar os dados que acabaram de ser lidos ao vector.
 
+      //Serial.print("Sample rate:"); Serial.println(sampleRate);
       delay(sampleRate);
     }
     Serial.println("OK");
@@ -331,3 +347,10 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
     //conectar ao firebase e enviar o vector preenchido
   }
 }
+/*
+void setRGB(bool r, bool g, bool b){
+  digitalWrite(D1, r);
+  digitalWrite(D2, g);
+  digitalWrite(D3, b);
+}
+*/
