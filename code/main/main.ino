@@ -11,8 +11,8 @@
 
 using namespace std;
 
-#define SDA D6
-#define SCL D5
+#define SDA D2
+#define SCL D3
 
 const uint8_t ACCEL_XOUT = 0x3B;
 const uint8_t MPU_ADDR = 0x68;
@@ -55,7 +55,7 @@ void setup()
   //pinMode(D2, OUTPUT);
   //pinMode(D3, OUTPUT);
   
-  Serial.begin(500000);
+  Serial.begin(115200);
   Wire.begin(SDA, SCL);
   setupWiFi(wifiMulti);
 
