@@ -11,6 +11,7 @@ import time
 def on_connect(client, userdata, flags, rc): 
     if(rc==0):
         print("Connected!")
+        client.publish(inTopic, "stop")
     else:
         print("Bad connection. Return code = ",rc)
    
