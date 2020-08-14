@@ -28,9 +28,9 @@ const uint8_t GYRO_SCALE = 0b00000000;  //Escala do giroscopio: +-250 °/s
 const uint8_t ACCEL_SCALE = 0b00001000; //Escala do acelerometro: +- 4 G
 
 int16_t buff[7];
-int16_t accel[3000][3];
-int16_t gyro[3000][3];
-int16_t temp[3000];
+int16_t accel[50][3];
+int16_t gyro[50][3];
+int16_t temp[50];
 
 unsigned long prevTime = 0;
 long liveInterval = 2000;
@@ -310,31 +310,28 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
     Serial.println(i);
     Serial.println("");
 
-    prevTime = 0;
-
-    unsigned long curTime = millis();
-    if (curTime - prevTime >= sampleRate)
+    unsigned long captTime = millis();
+    for (int j = 0; j < nSample; j++)
     {
-      prevTime = curTime;
-
-      for (int j = 0; j < nSample; j++)
+      readSensor();
+      for (int k = 0; k < 3; k++)
       {
-        readSensor();
-        for (int k = 0; k < 3; k++)
-        {
-          accel[i][j] = buff[j];
-          gyro[i][j] = buff[j + 4];
-        }
-        temp[i] = buff[3];
-
-        Serial.print("Amostra ");
-        Serial.println(j);
-
+        accel[i][j] = buff[j];
+        gyro[i][j] = buff[j + 4];
       }
+      temp[i] = buff[3];
+
+      Serial.print("Amostra ");
+      Serial.println(j);
+
+      delay(sampleRate);
     }
 
-    Serial.println("OK");
-    MQTT.publish(outTopic, "ok");
+    captTime = millis() - captTime;
+    char* _captTime = (char*)captTime;
+    
+    Serial.println(_captTime);
+    MQTT.publish(outTopic, _captTime);
     MQTT.loop(); // da um mqtt.loop só pra manter o broker conectado. Pode ser removido depois
 
     //captura x concluida;
@@ -343,9 +340,9 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
 }
 
 /*
-void setRGB(bool r, bool g, bool b){
+  void setRGB(bool r, bool g, bool b){
   digitalWrite(ledR, r);
   digitalWrite(ledG, g);
   digitalWrite(ledB, b);
-}
+  }
 */
