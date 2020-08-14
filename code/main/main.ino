@@ -6,8 +6,6 @@
 
 #include <vector>
 #include "key.h"
-//#include "lib-MPU.h"
-//#include "lib-nodemcu.h"
 
 using namespace std;
 
@@ -61,7 +59,7 @@ void setup()
   //pinMode(ledR, OUTPUT);
   //pinMode(ledG, OUTPUT);
   //pinMode(ledB, OUTPUT);
-  
+
   Serial.begin(115200);
   Wire.begin(SDA, SCL);
   setupWiFi(wifiMulti);
@@ -84,31 +82,29 @@ void loop()
 
   //só entrará nessa rotina a cada 'liveInterval' de tempo.
   unsigned long curTime = millis();
-  if (curTime - prevTime >= liveInterval){
+  if (curTime - prevTime >= liveInterval)
+  {
     prevTime = curTime;
 
     //Funcao de analise em tempo real.
-    if (liveFlag){
+    if (liveFlag)
+    {
       readSensor();
 
       msg = "[\t";
-      for (int i = 0; i < 7; i++){
+      for (int i = 0; i < 7; i++)
+      {
         msg += buff[i];
         msg += "\t";
       }
       msg += "]";
       Serial.print("\n");
       Serial.print(msg);
-      
+
       //MQTT.publish(outTopic, "Essa é uma captura");
-    }else{
-      liveInterval = 2000;
-      
-      //acende o LED azul por 100 ms para mostrar que está esperando.
-      //setRGB(0,0,1);
-      //delay(100);
-      //setRGB(0,0,0);
     }
+    else
+      liveInterval = 2000;
   }
 
   //  1
@@ -142,12 +138,14 @@ void loop()
 ///////////
 ///////////
 
-void inputMQTT(char *topic, byte *payload, unsigned int length){
-  
+void inputMQTT(char *topic, byte *payload, unsigned int length)
+{
+
   //tratamento da mensagem recebida.
   String msg;
 
-  for (int i = 0; i < length; i++){
+  for (int i = 0; i < length; i++)
+  {
     char c = (char)payload[i];
     msg += c;
   }
@@ -160,9 +158,10 @@ void inputMQTT(char *topic, byte *payload, unsigned int length){
       {"cmd":"xxxx","nCapture":yyyy,"nSample":zzzz,"sampleRate":aaaa}
   */
 
-  if (data["cmd"] == "cmd_capt"){
+  if (data["cmd"] == "cmd_capt")
+  {
     //setRGB(1,0,1);
-    
+
     liveFlag = 0;
     Serial.println("\nCapture Mode.");
 
@@ -179,35 +178,35 @@ void inputMQTT(char *topic, byte *payload, unsigned int length){
 
     captureSensor(nCapture, nSample, sampleRate);
   }
-  else if (data["cmd"] == "cmd_live"){
+  else if (data["cmd"] == "cmd_live")
+  {
     //setRGB(1,0,1);
-    
+
     liveFlag = 1;
     Serial.println("\nLive Mode.");
 
     liveInterval = data["sampleRate"];
   }
-  else if (data["cmd"] == "stop"){
+  else if (data["cmd"] == "stop")
+  {
     liveInterval = 0;
     Serial.print("OK! Parando operação...");
   }
-  else{
+  else
+  {
     liveFlag = 0;
     Serial.println("Comando desconhecido. Tente novamente.\n");
   }
 }
 
-void setupOTA(){
+void setupOTA()
+{
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH)
-    {
       type = "sketch";
-    }
     else
-    { // U_FS
       type = "filesystem";
-    }
 
     // NOTE: if updating FS this would be the place to unmount FS using FS.end()
     Serial.println("Start updating " + type);
@@ -218,20 +217,27 @@ void setupOTA(){
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
   });
-  ArduinoOTA.onError([](ota_error_t error){
+  ArduinoOTA.onError([](ota_error_t error) {
     Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR)          Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR)    Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR)  Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR)  Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR)      Serial.println("End Failed");
+    if (error == OTA_AUTH_ERROR)
+      Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR)
+      Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR)
+      Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR)
+      Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR)
+      Serial.println("End Failed");
   });
   ArduinoOTA.begin();
   Serial.println("OTA Ready.");
 }
 
-void setupWiFi(ESP8266WiFiMulti wifiMulti){
-  while (wifiMulti.run() != WL_CONNECTED){
+void setupWiFi(ESP8266WiFiMulti wifiMulti)
+{
+  while (wifiMulti.run() != WL_CONNECTED)
+  {
     WiFi.mode(WIFI_STA);
     wifiMulti.addAP(SSID_01, PASS_01);
     Serial.println("Trying to connect to WiFi.");
@@ -241,76 +247,94 @@ void setupWiFi(ESP8266WiFiMulti wifiMulti){
     //ledFlag = !ledFlag;
     //setRGB(ledFlag,0,0);
   }
-  
+
   //setRGB(0,0,0);
   Serial.print("\nWiFi connected. IP ");
   Serial.println(WiFi.localIP());
 }
 
-void setupMQTT(){
+void setupMQTT()
+{
 
   String deviceID = "ESP8266Client-";
   //deviceID += String(random(0xffff), HEX);
   deviceID += WiFi.macAddress();
 
   Serial.println("Trying to connect to MQTT Broker as " + deviceID);
-  if (MQTT.connect(deviceID.c_str())){
+  if (MQTT.connect(deviceID.c_str()))
+  {
     Serial.println("\nBroker connected!");
     MQTT.subscribe(inTopic);
   }
-  else{
+  else
+  {
     Serial.println("Error. Trying again in 5 seconds.");
     delay(5000);
   }
 }
 
-void setupSensor(){
+void setupSensor()
+{
   writeSensor(PWR_MGMT_1, 0);
   writeSensor(GYRO_CONFIG, GYRO_SCALE);
   writeSensor(ACCEL_CONFIG, ACCEL_SCALE);
 }
 
-void writeSensor(int REG, int VAL){
+void writeSensor(int REG, int VAL)
+{
   Wire.beginTransmission(MPU_ADDR); //inicia a comunicacao com o endereço do MPU6050
   Wire.write(REG);                  //envia o registrador com o qual se deseja trabalhar
   Wire.write(VAL);                  //escreve o valor no registrador
   Wire.endTransmission();           //termina a transmissao
 }
 
-void readSensor(){
+void readSensor()
+{
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(ACCEL_XOUT);
   Wire.endTransmission(false);
   Wire.requestFrom(MPU_ADDR, (uint8_t)14);
-  
+
   for (int i = 0; i < 7; i++)
     buff[i] = Wire.read() << 8 | Wire.read();
 
   yield();
 }
 
-void captureSensor(int nCapture, int nSample, int sampleRate){
-  for (int i = 0; i < nCapture; i++){
+void captureSensor(int nCapture, int nSample, int sampleRate)
+{
+  for (int i = 0; i < nCapture; i++)
+  {
 
     Serial.print("\n\nCaptura ");
     Serial.println(i);
     Serial.println("");
 
-    for (int j = 0; j < nSample; j++){
-      readSensor();
-      for (int k = 0; k < 3; k++){
-        accel[i][j] = buff[j];
-        gyro[i][j] = buff[j + 4];
+    prevTime = 0;
+
+    unsigned long curTime = millis();
+    if (curTime - prevTime >= sampleRate)
+    {
+      prevTime = curTime;
+
+      for (int j = 0; j < nSample; j++)
+      {
+        readSensor();
+        for (int k = 0; k < 3; k++)
+        {
+          accel[i][j] = buff[j];
+          gyro[i][j] = buff[j + 4];
+        }
+        temp[i] = buff[3];
+
+        Serial.print("Amostra ");
+        Serial.println(j);
+
       }
-      temp[i] = buff[3];
-
-      Serial.print("Amostra ");
-      Serial.println(j);
-
-      delay(sampleRate);
     }
+
     Serial.println("OK");
-    MQTT.publish(outTopic,"ok");
+    MQTT.publish(outTopic, "ok");
     MQTT.loop(); // da um mqtt.loop só pra manter o broker conectado. Pode ser removido depois
 
     //captura x concluida;
