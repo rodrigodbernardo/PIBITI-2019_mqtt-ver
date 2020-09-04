@@ -240,6 +240,8 @@ void setupWiFi(ESP8266WiFiMulti wifiMulti)
   {
     WiFi.mode(WIFI_STA);
     wifiMulti.addAP(SSID_01, PASS_01);
+    wifiMulti.addAP(SSID_02, PASS_02);
+    
     Serial.println("Trying to connect to WiFi.");
     delay(500);
 
@@ -327,16 +329,17 @@ void captureSensor(int nCapture, int nSample, int sampleRate)
       delay(sampleRate);
     }
 
-    captTime = millis() - captTime;
-    char* _captTime = (char*)captTime;
+    //captTime = millis() - captTime;
+    //char* _captTime = (char*)captTime;
     
-    Serial.println(_captTime);
-    MQTT.publish(outTopic, _captTime);
+    ////Serial.println(_captTime);
+    //MQTT.publish(outTopic, _captTime);
     MQTT.loop(); // da um mqtt.loop só pra manter o broker conectado. Pode ser removido depois
 
     //captura x concluida;
     //conectar ao firebase e enviar o vector preenchido
   }
+  MQTT.publish(outTopic, "OK");
 }
 
 /*
